@@ -119,7 +119,7 @@
   <div id="error"></div>
 </div>
 
-<script>
+<!-- <script>
 // Species List
 const SPECIES = [
   "Stellar Lynx", "Nebula Eagle", "Crimson Hornbeast", "Void Panther",
@@ -180,7 +180,55 @@ document.getElementById("sightingForm").addEventListener("submit", async (event)
     document.getElementById("error").textContent = "Network Error: " + err;
   }
 });
+</script> -->
+
+<script>
+const SPECIES = [
+  "Stellar Lynx","Nebula Eagle","Crimson Hornbeast","Void Panther",
+  "Aqua Serpent","Moonlight Wolf","Quasar Turtle","Luminous Beetle",
+  "Stormback Ape","Crystal Mantis"
+];
+
+const API = "https://0qi7pimu0l.execute-api.us-east-1.amazonaws.com/prod/submit";
+
+// Add species inputs
+const box = document.getElementById("speciesFields");
+SPECIES.forEach(s => {
+  box.innerHTML += `<label>${s}:</label>
+    <input type="number" name="${s}" min="0" value="0"><br>`;
+});
+
+// Form submit
+document.getElementById("sightingForm").onsubmit = async (e) => {
+  e.preventDefault();
+
+  const f = e.target;
+  const payload = {
+    ranger: f.ranger.value.trim(),
+    planet: f.planet.value.trim(),
+    sightings: Object.fromEntries(
+      SPECIES.map(s => [s, Number(f[s].value || 0)])
+    )
+  };
+
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    document.getElementById("msg").textContent =
+      res.ok && data.result === "valid"
+        ? "Success! Token: " + data.tracking_token
+        : "Error: " + (data.error || JSON.stringify(data));
+  } catch (err) {
+    document.getElementById("error").textContent = "Network Error: " + err;
+  }
+};
 </script>
+
 
 </body>
 </html>
