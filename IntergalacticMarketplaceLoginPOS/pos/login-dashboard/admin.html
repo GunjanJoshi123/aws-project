@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Admin Dashboard - Intergalactic POS</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h2 { margin-bottom: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    pre { background: #f6f6f6; padding: 10px; border-radius: 4px; }
+    .card { padding: 10px; background: #eee; width: 280px; margin-top: 10px; }
+    button { padding: 8px 12px; margin-right: 10px; }
+  </style>
+</head>
+
+<body>
+
+<h2>Admin Dashboard</h2>
+
+<!-- Buttons -->
+<button id="btnRefresh">Refresh</button>
+<button id="btnExport">Export CSV</button>
+
+<div class="card">
+  <strong>Total Orders:</strong> <span id="totalOrders"></span><br>
+  <strong>Total Items Sold:</strong> <span id="totalItems"></span>
+</div>
+
+<h3>Top 3 Ordered Items</h3>
+<div id="topItems"></div>
+
+<h3>Items Breakdown</h3>
+<pre id="perItem"></pre>
+
+<h3>Order List</h3>
+<table id="ordersTbl">
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>Timestamp</th>
+      <th>Agent</th>
+      <th>Items</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+const API_URL = "https://YOUR_API_GATEWAY.execute-api.us-east-1.amazonaws.com/admin/stats";
+
+// Refresh button
+document.getElementById("btnRefresh").addEventListener("click", loadStats);
+
+// Export CSV
+document.getElementById("btnExport").addEventListener("click", () => {
+  const rows = document.querySelectorAll("#ordersTbl tbody tr");
+  let csv = "order_id,timestamp,agent,items\n";
+
+  rows.forEach(r => {
+    const cols = r.querySelectorAll("td");
+    csv += `"${cols[0].innerText}","${cols[1].innerText}","${cols[2].innerText}","${cols[3].innerText.replace(/"/g,'""')}"\n`;
+  });
+
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "orders.csv";
+  a.click();
+});
+
+// Load stats from API
+async function loadStats() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+
+    document.getElementById("totalOrders").innerText = data.total_orders;
+    document.getElementById("totalItems").innerText = data.total_items;
+
+    // Top items
+    let html = "<ol>";
+    data.most_ordered_top3.forEach(it => {
+      html += `<li>${it.item} — ${it.count}</li>`;
+    });
+    html += "</ol>";
+    document.getElementById("topItems").innerHTML = html;
+
+    // Item counts
+    document.getElementById("perItem").innerText =
+      JSON.stringify(data.per_item_counts, null, 2);
+
+    // Order table
+    const tbody = document.querySelector("#ordersTbl tbody");
+    tbody.innerHTML = "";
+
+    data.orders.forEach(order => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${order.order_id}</td>
+        <td>${order.timestamp}</td>
+        <td>${order.agent}</td>
+        <td>${JSON.stringify(order.items)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+  } catch (error) {
+    alert("Error loading stats: " + error);
+  }
+}
+
+// Load immediately when admin.html opens
+loadStats();
+</script>
+
+</body>
+</html>

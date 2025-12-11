@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+  <div class="main">
+    <p class="sign" align="center">Admin Login</p>
+
+    <form id="loginForm">
+
+      <!-- Agent Name (Readonly Display) -->
+      <input class="ip" type="text" value="YOUR_AGENT_NAME_HERE" readonly>
+
+      <!-- Admin Password -->
+      <input class="ip" type="password" placeholder="Password">
+
+      <!-- Submit Button -->
+      <input type="submit" class="submit" value="Login">
+    </form>
+
+    <p id="msg" style="color:red; text-align:center;"></p>
+  </div>
+
+<script>
+const ADMIN_PASS = "admin123"; // Change if you want
+
+document.getElementById("loginForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const pw = document.querySelectorAll(".ip")[1].value; // second input is password
+
+    if (pw === ADMIN_PASS) {
+        window.location.href = "admin.html";
+    } else {
+        document.getElementById("msg").innerText = "Incorrect password!";
+    }
+});
+</script>
+
+</body>
+</html>
