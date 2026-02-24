@@ -73,4 +73,4 @@ def lambda_handler(event, context):
             print(f"Processing bucket={bucket}, key={key}")
             process_s3_file(bucket, key)
 
-    return {"status": "done"}
+    return {"status": "done"}                                                                                                                                                                                                                                                          

@@ -21,7 +21,7 @@ matches each time.
 STEP 1 — Create DynamoDB Tables
     Table 1: Dictionary
     Table 2: Checks
-    Table 3: Matches
+    Table 3: Matches    
 
 STEP 2 — Create S3 Bucket
 
@@ -81,7 +81,8 @@ STEP 7 — Create IAM Role for Lambda
     Role name: lambda-frp-role
 
 
-🧮 STEP 8 — Create the Lambda Function
+🧮 STEP 8 — Create the Lambda Function: frp-passphrase-processor
+
 
 📦 STEP 9 — Connect SQS Trigger to Lambda
     Go to Lambda → frp-processor → Configuration → Triggers → Add trigger
