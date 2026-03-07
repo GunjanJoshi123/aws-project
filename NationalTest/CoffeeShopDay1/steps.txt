@@ -9,7 +9,7 @@ Lambda Functions
    ↓
 DynamoDB + S3 (order notes)
 
-MODULE 1 – ORDERING THE BEVERAGES
+🏗 MODULE 1 – ORDERING THE BEVERAGES
 STEP 1: Create DynamoDB Tables
 Orders Table
 DIY Table
@@ -22,4 +22,28 @@ STEP 4: Lambda – Order Processing
 STEP 5: API Gateway
 Create REST API: POST /order
 → Lambda: order_lambda
+
+🏗 Module 2 in logic in lambda
+
+🏗 MODULE 3(UI is optional if mention)
+Coffee Shop Owner
+        ↓
+API Gateway
+   ├── GET /ordersummary
+   ├── GET /salessummary
+   └── GET /inventory
+        ↓
+     Lambda Functions
+        ↓
+     DynamoDB Tables
+
+🔹 STEP 1 – Lambda: orderSummaryLambda
+🔹 STEP 2 – Lambda: salesSummaryLambda
+🔹 STEP 3 – Lambda: inventoryLambda
+🔹 STEP 4 – API Gateway Configuration
+| Method | Route         | Lambda             |
+| ------ | ------------- | ------------------ |
+| GET    | /ordersummary | orderSummaryLambda |
+| GET    | /salessummary | salesSummaryLambda |
+| GET    | /inventory    | inventoryLambda    |
 

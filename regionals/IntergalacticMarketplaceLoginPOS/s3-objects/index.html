@@ -72,16 +72,16 @@ document.querySelector("#orderForm").addEventListener("submit", async function(e
     const agent = document.getElementById("agent").value;
 
     const items = {
-        "Orriz Nectar": parseInt(q1.value),
-        "Randolite Bark": parseInt(q2.value),
-        "Jenkomeryon Leaf": parseInt(q3.value),
-        "Afistase Fruit": parseInt(q4.value),
-        "Cabardson Seed": parseInt(q5.value),
-        "Hickmonium Berry": parseInt(q6.value),
-        "Soipruolite Pollen": parseInt(q7.value),
-        "Wheeleaon Root": parseInt(q8.value),
-        "Friotaug Stem": parseInt(q9.value),
-        "Poif Flower": parseInt(q10.value)
+        "Orriz Nectar": parseInt(document.getElementById("q1").value),
+        "Randolite Bark": parseInt(document.getElementById("q2").value),
+        "Jenkomeryon Leaf": parseInt(document.getElementById("q3").value),
+        "Afistase Fruit": parseInt(document.getElementById("q4").value),
+        "Cabardson Seed": parseInt(document.getElementById("q5").value),
+        "Hickmonium Berry": parseInt(document.getElementById("q6").value),
+        "Soipruolite Pollen": parseInt(document.getElementById("q7").value),
+        "Wheeleaon Root": parseInt(document.getElementById("q8").value),
+        "Friotaug Stem": parseInt(document.getElementById("q9").value),
+        "Poif Flower": parseInt(document.getElementById("q10").value)
     };
 
     const filtered = {};
@@ -94,17 +94,22 @@ document.querySelector("#orderForm").addEventListener("submit", async function(e
         items: filtered
     };
 
-    const res = await fetch(
-        "https://dqxhyqr360.execute-api.us-east-1.amazonaws.com/dev/order",
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        }
-    );
+    try {
+        const res = await fetch(
+            "https://j2v45exrmd.execute-api.us-east-1.amazonaws.com/prod/order",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }
+        );
 
-    const output = await res.json();
-    document.getElementById("result").innerText = JSON.stringify(output, null, 2);
+        const output = await res.json();
+        document.getElementById("result").innerText = JSON.stringify(output, null, 2);
+
+    } catch (error) {
+        document.getElementById("result").innerText = "Error: " + error.message;
+    }
 });
 </script>
 
