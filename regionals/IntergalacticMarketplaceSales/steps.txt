@@ -1,5 +1,5 @@
 Task 1 Flow
-S3 (105 CSV Files)
+S3 (105 sales Files)
 ⬇
 Lambda – ProcessSalesOrders
 ⬇

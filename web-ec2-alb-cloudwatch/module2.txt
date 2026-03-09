@@ -28,7 +28,13 @@ CloudWatch → Log Groups
 STEP 2 — Install CloudWatch Agent on EC2
 sudo yum install amazon-cloudwatch-agent -y
 
+Verify:
+amazon-cloudwatch-agent-ctl -a status
+amazon-cloudwatch-agent-ctl -a start 
+
 STEP 3 — Create Agent Configuration
+sudo nano /opt/aws/amazon-cloudwatch-agent/bin/config.json
+
 {
  "logs": {
    "logs_collected": {
@@ -87,3 +93,8 @@ Statistic → Sum
 Widget 2 – ALB 5XX Errors: AWS/ApplicationELB → HTTPCode_ELB_5XX_Count & Statistic: Sum
 Widget 3 – AWS/ApplicationELB → HealthyHostCount
 Statistic: Average
+
+for i in {1..20}
+do
+curl -X POST ALB/orders -d '{"item":"mouse"}'
+done

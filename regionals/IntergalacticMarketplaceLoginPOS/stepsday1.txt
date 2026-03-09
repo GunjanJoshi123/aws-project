@@ -7,8 +7,8 @@ Order is stored in DynamoDB
 Order signature is generated
 
 TASK 1: 
-🔹 STEP 1 – Create DynamoDB Table
-🔹 STEP 2 – Create Order Lambda
+🔹 STEP 1 – Create DynamoDB Table: Orders
+🔹 STEP 2 – Create Order Lambda: PlaceOrderLambda
 🔹 STEP 3 – Create API Gateway (HTTP API)
     POST /order
     Attach integration → Select Lambda → PlaceOrderLambda
