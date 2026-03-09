@@ -46,7 +46,7 @@ Create new security group bastion-sg
     SSH	22	Your IP
     Example:  22 → My IP
 
-Step 7 — Create Bastion Host
+Step 8 — Create Bastion Host
     Name: Bastion-Host
     AMI: Amazon Linux 2
     Instance type: t2.micro
@@ -57,13 +57,13 @@ Step 7 — Create Bastion Host
     Port: 22
     Source: My IP
 
-Step 8 — Edit Security Group for Web Servers: Ec2-SG
+Step 9 — Edit Security Group for Web Servers: Ec2-SG
 
     Inbound rules
     HTTP 80 → ALB Security Group
     SSH 22 → Bastion Host Security Group
 
-Step 8: Create Launch Template
+Step 10: Create Launch Template
 User Data Script
 
 #!/bin/bash
@@ -73,15 +73,15 @@ systemctl start httpd
 systemctl enable httpd
 echo "Hello from Auto Scaling Instance" > /var/www/html/index.html
 
-Step 9: Create Target Group
-Step 10: Create Application Load Balancer
+Step 11: Create Target Group
+Step 12: Create Application Load Balancer
     Scheme: Internet Facing
     Subnets: Public Subnet 1, Public Subnet 2
     Security Group: ALB-SG
     Listener: HTTP 80
     Target Group: previously created
 
-Step 11: Create Auto Scaling Group
+Step 13: Create Auto Scaling Group
     Configuration
     Launch Template: previously created
     Network
@@ -99,8 +99,8 @@ Step 11: Create Auto Scaling Group
     Attach
     Target Group (Load Balancer)
 
-Step 12: Configure CloudWatch Metrics: EC2 CPU Utilization
-Step 13: Create CloudWatch Alarm
+Step 14: Configure CloudWatch Metrics: EC2 CPU Utilization
+Step 15: Create CloudWatch Alarm
     Create Alarm
     Metric
     EC2 CPUUtilization
@@ -109,8 +109,8 @@ Step 13: Create CloudWatch Alarm
     Trigger Auto Scaling
     Example: Scale Out → Add 1 instance
 
-Step 14: Testing
-Load Balancer DNS
+Step 16: Testing
+    Load Balancer DNS
 
-4. Monitoring
-Using CloudWatch Dashboard
+    4. Monitoring
+    Using CloudWatch Dashboard
