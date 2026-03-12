@@ -1,0 +1,323 @@
+4. Step 1 — Create VPC
+
+Open VPC → Create VPC
+
+Configuration
+
+Name: ccproj-dev-vpc-main
+CIDR: 10.10.0.0/16
+DNS hostnames: enabled
+DNS resolution: enabled
+Best Practice
+
+Enable DNS so EC2 can resolve domain names.
+
+5. Step 2 — Create Subnets
+
+Create 4 subnets across 2 AZs
+
+Name	CIDR	Type
+ccproj-dev-subnet-public-a	10.10.1.0/24	Public
+ccproj-dev-subnet-public-b	10.10.2.0/24	Public
+ccproj-dev-subnet-private-a	10.10.3.0/24	Private
+ccproj-dev-subnet-private-b	10.10.4.0/24	Private
+Best Practice
+
+Use multiple AZs for high availability.
+
+6. Step 3 — Internet Gateway
+
+Create
+
+Name: ccproj-dev-igw-main
+
+Attach to:
+
+ccproj-dev-vpc-main
+
+Purpose:
+
+Public subnet → Internet access
+7. Step 4 — Public Route Table
+
+Create route table
+
+Name: ccproj-dev-rtb-public
+
+Add route
+
+Destination: 0.0.0.0/0
+Target: ccproj-dev-igw-main
+
+Associate
+
+ccproj-dev-subnet-public-a
+ccproj-dev-subnet-public-b
+8. Step 5 — NAT Gateway
+
+Create NAT gateway
+
+Name: ccproj-dev-natgw-main
+Subnet: ccproj-dev-subnet-public-a
+Elastic IP: ccproj-dev-eip-nat
+
+Purpose:
+
+Private EC2 → Internet updates
+
+Flow:
+
+Private EC2 → NAT → Internet
+9. Step 6 — Private Route Table
+
+Create route table
+
+Name: ccproj-dev-rtb-private
+
+Add route
+
+Destination: 0.0.0.0/0
+Target: ccproj-dev-natgw-main
+
+Associate
+
+ccproj-dev-subnet-private-a
+ccproj-dev-subnet-private-b
+10. Step 7 — Security Groups
+Bastion Security Group
+Name: ccproj-dev-sg-bastion
+
+Inbound rules
+
+SSH 22 → My IP
+
+Outbound
+
+All traffic
+Private EC2 Security Group
+Name: ccproj-dev-sg-app
+
+Inbound
+
+SSH 22 → ccproj-dev-sg-bastion
+HTTP 80 → VPC CIDR
+
+Best Practice:
+
+Never expose private server to internet.
+
+11. Step 8 — Launch EC2 Instances
+
+Service: Amazon Elastic Compute Cloud
+
+Bastion Host
+Name: ccproj-dev-ec2-bastion-01
+Instance type: t2.micro
+Subnet: public subnet
+Public IP: enabled
+Security group: sg-bastion
+Application Server
+Name: ccproj-dev-ec2-app-01
+Subnet: private subnet
+Public IP: disabled
+Security group: sg-app
+12. Step 9 — Connect to Private Server
+
+Step 1
+
+ssh ec2-user@bastion-public-ip
+
+Step 2
+
+ssh ec2-user@10.10.3.15
+
+Flow
+
+Laptop → Bastion → Private EC2
+13. Step 10 — Install Monitoring Agent
+
+Use:
+
+Amazon CloudWatch
+
+Install agent
+
+sudo yum install amazon-cloudwatch-agent
+
+Configure
+
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
+
+Monitor
+
+CPU
+Memory
+Disk
+Logs
+
+Log paths
+
+/var/log/messages
+/var/log/secure
+14. VPC Traffic Monitoring (Important)
+
+Enable Flow Logs.
+
+Go to:
+
+VPC → Flow Logs → Create
+
+Configuration
+
+Name: ccproj-dev-flowlogs
+Resource: VPC
+Destination: CloudWatch Logs
+Log group: ccproj-dev-vpc-traffic
+
+Flow logs capture:
+
+source IP
+destination IP
+port
+protocol
+traffic status
+
+Example log
+
+10.10.3.10 52.95.110.1 ACCEPT TCP
+
+Meaning:
+
+Private EC2 accessed internet
+
+Rejected example
+
+10.10.3.10 10.10.1.5 REJECT
+
+Meaning
+
+Security group blocked traffic
+15. Create CloudWatch Alarm
+
+Go to:
+
+CloudWatch → Alarms → Create
+
+Metric
+
+EC2 → CPUUtilization
+
+Configuration
+
+Threshold: 80%
+Period: 5 minutes
+Evaluation periods: 1
+
+Alarm name
+
+ccproj-dev-alarm-cpu-high
+
+Action
+
+Send notification → SNS Email
+16. How to Check Alarm Status
+
+Go to:
+
+CloudWatch → Alarms
+
+Status types
+
+State	Meaning
+OK	normal
+ALARM	threshold exceeded
+INSUFFICIENT DATA	no data
+
+Example
+
+ccproj-dev-alarm-cpu-high
+Status: OK
+17. Trigger Alarm for Testing
+
+Install stress
+
+sudo yum install stress
+
+Generate CPU load
+
+stress --cpu 2
+
+Check alarm.
+
+Expected
+
+Alarm state → ALARM
+18. Debugging / Troubleshooting Guide
+Problem: Cannot SSH to private server
+
+Check
+
+Security group rules
+Bastion connection
+Private IP
+Problem: EC2 cannot access internet
+
+Check
+
+NAT Gateway
+Private route table
+Subnet association
+Problem: CloudWatch logs not showing
+
+Check
+
+CloudWatch agent running
+IAM role attached
+Log group created
+
+Command
+
+systemctl status amazon-cloudwatch-agent
+Problem: Flow logs empty
+
+Check
+
+Correct VPC selected
+CloudWatch log group
+Permissions
+19. Optional Monitoring Dashboard
+
+Go to
+
+CloudWatch → Dashboards
+
+Create
+
+ccproj-dev-dashboard
+
+Add widgets
+
+EC2 CPU
+Network traffic
+Disk usage
+Alarm status
+20. Final Architecture
+ccproj-dev-vpc-main
+│
+├ Public Subnet
+│   └ Bastion Host
+│
+├ Public Subnet
+│   └ NAT Gateway
+│
+├ Private Subnet
+│   └ Application EC2
+│
+└ Private Subnet
+
+Monitoring
+
+EC2 → CloudWatch Metrics
+Logs → CloudWatch Logs
+VPC → Flow Logs
+Alarms → SNS
