@@ -67,3 +67,5 @@ IAM Permission Required
 }
 STEP 4️⃣ Create API Gateway (GET API) in region for GET
 GET /receive
+
+https://vh3r9lgpki.execute-api.ap-south-1.amazonaws.com/decrypt?id=e88a33ab-dce4-4bc4-baf8-8fcc960247cc

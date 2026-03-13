@@ -1,0 +1,115 @@
+import json
+import boto3
+import base64
+import uuid
+
+kms = boto3.client('kms')
+dynamodb = boto3.resource('dynamodb')
+
+table = dynamodb.Table('secure-notes-table')
+KMS_KEY = "arn:aws:kms:us-east-1:800939197474:key/c42dc20c-6a78-4b06-a131-b721eec4afd6"
+
+def lambda_handler(event, context):
+
+    # Handle both direct and proxy request
+    if "body" in event:
+        body = json.loads(event["body"])
+    else:
+        body = event
+
+    note = body["note"]
+
+    encrypted = kms.encrypt(
+        KeyId=KMS_KEY,
+        Plaintext=note.encode()
+    )
+
+    ciphertext = base64.b64encode(
+        encrypted["CiphertextBlob"]
+    ).decode()
+
+    note_id = str(uuid.uuid4())
+
+    table.put_item(
+        Item={
+            "noteId": note_id,
+            "encrypted_note": ciphertext
+        }
+    )
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "message": "Note stored",
+            "noteId": note_id
+        })
+    }
+
+Step 6 — Create File Processor Lambda
+
+Create Lambda:
+
+lambda-file-processor
+
+Trigger:
+
+SQS Queue
+
+Purpose:
+
+process uploaded file
+
+update DynamoDB status
+
+Step 7 — Create API Gateway
+
+Open API Gateway
+
+Create:
+
+REST API
+
+Resource:
+
+/upload
+
+Method:
+
+POST
+
+Integration:
+
+Lambda → lambda-upload-handler
+
+Deploy stage:
+
+dev
+Step 8 — Test with Curl
+
+Example request:
+
+curl -X POST https://api-id.execute-api.us-east-1.amazonaws.com/dev/upload \
+-H "Content-Type: application/json" \
+-d '{
+"filename":"test.txt",
+"data":"Hello Secure AWS"
+}'
+Step 9 — Monitoring
+
+Open CloudWatch
+
+Check logs:
+
+/aws/lambda/lambda-upload-handler
+/aws/lambda/lambda-file-processor
+
+Create alarm example:
+
+Lambda Errors > 1
+Security Layers in This Project
+API Gateway → API authentication
+S3 → KMS encryption
+SQS → encrypted queue
+DynamoDB → encrypted table
+Lambda → encrypted environment variables
+CloudWatch → monitoring

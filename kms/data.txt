@@ -1,0 +1,319 @@
+Step 1 — Create KMS Key
+
+Go to KMS → Create Key
+
+Select
+
+Key type: Symmetric
+Key usage: Encrypt/Decrypt
+
+Alias:
+
+alias/kms-secure-notes
+
+Allow access to:
+
+Lambda execution role
+
+Create key.
+
+Step 2 — Create DynamoDB Table
+
+Go to DynamoDB → Create Table
+
+Table name
+
+secure-notes-table
+
+Partition key
+
+noteId (String)
+
+Settings
+
+On-demand capacity
+Encryption: Default (KMS optional)
+Step 3 — Create IAM Role for Lambda
+
+Go to IAM → Roles → Create role
+
+Trusted entity
+
+Lambda
+
+Attach policies
+
+AWSLambdaBasicExecutionRole
+AmazonDynamoDBFullAccess
+AWSKeyManagementServicePowerUser (or limited kms:Encrypt)
+
+Name
+
+role-lambda-secure-notes
+Step 4 — Create Lambda Function
+
+Go to Lambda → Create Function
+
+Name
+
+lambda-secure-notes
+
+Runtime
+
+Python 3.12
+
+Execution role
+
+role-lambda-secure-notes
+Step 5 — Lambda Code
+
+Step 6 — Create API Gateway
+
+Create API
+
+REST API
+Name
+
+Create Resource
+/notes
+
+Create Method
+
+POST
+Integration type
+Lambda
+Select
+
+lambda-secure-notes
+
+Enable
+
+Lambda proxy integration
+Step 7 — Deploy API
+
+Deploy stage
+dev
+
+https://abc123.execute-api.region.amazonaws.com/dev/notes
+Step 8 — Test API
+
+curl -X POST https://api-id.execute-api.us-east-1.amazonaws.com/dev/notes \
+-H "Content-Type: application/json" \
+-H "x-api-key: YOUR_API_KEY" \
+-d '{"note":"secret message"}'
+
+
+1️⃣ API Authentication (API Key + Usage Plan)
+Why This Is Important
+
+Without authentication, anyone on the internet can call your API.
+
+Using API Key + Usage Plan helps to:
+
+Control who can access your API
+
+Prevent API abuse
+
+Apply rate limiting
+
+Monitor API usage
+
+Architecture:
+
+Client
+   │
+   │ API Key
+   ▼
+API Gateway
+   │
+   ▼
+Lambda
+Step 1 — Create API Key
+
+Open Amazon API Gateway
+
+Navigate:
+
+API Gateway → API Keys → Create API Key
+
+Example:
+
+Name: secure-notes-key
+Enabled: Yes
+
+Save.
+
+Step 2 — Create Usage Plan
+
+Navigate:
+
+API Gateway → Usage Plans → Create Usage Plan
+
+Example configuration:
+
+Name: secure-notes-plan
+Throttle:
+Rate = 10 requests/sec
+Burst = 20
+
+Quota:
+1000 requests/day
+Step 3 — Attach API Stage
+
+Add API stage:
+
+API: secure-notes-api
+Stage: dev
+Step 4 — Attach API Key to Usage Plan
+
+Inside Usage Plan:
+
+Add API Key → secure-notes-key
+Step 5 — Require API Key in Method
+
+Go to:
+
+API Gateway → Resources → POST /notes
+
+Edit Method Request
+
+Enable:
+
+API Key Required = TRUE
+
+Deploy API again.
+
+Step 6 — Test Using Curl
+
+Now API requires a key.
+
+curl -X POST https://api-id.execute-api.us-east-1.amazonaws.com/dev/notes \
+-H "Content-Type: application/json" \
+-H "x-api-key: YOUR_API_KEY" \
+-d '{"note":"secret message"}'
+
+If API key missing → 403 Forbidden
+
+2️⃣ KMS Encryption for Lambda Environment Variables
+Why This Is Important
+
+Sometimes Lambda contains sensitive configuration like:
+
+API tokens
+
+Database passwords
+
+Secret keys
+
+Environment variables can be encrypted using KMS.
+
+Flow:
+
+Plain Secret
+    ↓
+Encrypted with KMS
+    ↓
+Stored in Lambda environment
+    ↓
+Decrypted when Lambda runs
+Step 1 — Open Lambda
+
+Go to AWS Lambda
+
+Open your function:
+
+lambda-secure-notes
+
+Navigate to:
+
+Configuration → Environment Variables
+Step 2 — Add Environment Variable
+
+Example:
+
+KEY = APP_SECRET
+VALUE = MySecretKey123
+Step 3 — Enable KMS Encryption
+
+Scroll to Encryption configuration
+
+Select:
+
+Use customer managed key
+
+Choose your key from AWS Key Management Service
+
+Example:
+
+alias/secure-notes-key
+
+Save.
+
+Step 4 — Lambda Decrypts Automatically
+
+When Lambda runs:
+
+Encrypted value → automatically decrypted
+
+Use in code:
+
+import os
+
+secret = os.environ['APP_SECRET']
+
+Lambda automatically decrypts it using KMS.
+
+3️⃣ DynamoDB Encryption with Customer KMS Key
+Why This Is Important
+
+By default Amazon DynamoDB encrypts data using AWS-managed keys.
+
+But using customer-managed KMS key gives:
+
+Full control over encryption
+
+Key rotation
+
+Access control
+
+Audit logging
+
+Architecture:
+
+Application
+   │
+   ▼
+DynamoDB
+   │
+   ▼
+Encrypted using KMS Key
+Step 1 — Open DynamoDB Table
+
+Go to:
+
+DynamoDB → Tables → secure-notes-table
+Step 2 — Modify Encryption
+
+Navigate:
+
+Table → Additional Settings
+
+Find:
+
+Encryption
+
+Click Edit.
+
+Step 3 — Choose Encryption Type
+
+Select:
+
+Customer managed KMS key
+
+Choose key from AWS Key Management Service
+
+Example:
+
+alias/secure-notes-key
+
+Save.

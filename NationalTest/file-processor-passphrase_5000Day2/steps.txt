@@ -57,9 +57,52 @@ STEP 4 - Create SQS Queue
     Click Create subscription
 
     ✅ Allow SNS to send to SQS:
-    Go to SQS → frp-queue → Permissions tab
+    Go to SQS → frp-queue → Permissions tab(Queue policies)
     Click Edit access policy
     Add this snippet inside "Statement" array:
+    {
+  "Version": "2012-10-17",
+  "Id": "__default_policy_ID",
+  "Statement": [
+    {
+      "Sid": "__owner_statement",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::800939197474:root"
+      },
+      "Action": "SQS:*",
+      "Resource": "arn:aws:sqs:us-east-1:800939197474:frp-processing-queue"
+    },
+    {
+      "Sid": "topic-subscription-arn:aws:sns:us-east-1:800939197474:frp-upload-topic.fifo",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "sns.amazonaws.com"
+      },
+      "Action": "SQS:SendMessage",
+      "Resource": "arn:aws:sqs:us-east-1:800939197474:frp-processing-queue",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:sns:us-east-1:800939197474:frp-upload-topic.fifo"
+        }
+      }
+    },
+    {
+      "Sid": "topic-subscription-arn:aws:sns:us-east-1:800939197474:frp-upload-topic",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "sns.amazonaws.com"
+      },
+      "Action": "SQS:SendMessage",
+      "Resource": "arn:aws:sqs:us-east-1:800939197474:frp-processing-queue",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:sns:us-east-1:800939197474:frp-upload-topic"
+        }
+      }
+    }
+  ]
+}
 
 🧾 STEP 6 — Configure S3 Event Notification
     Make S3 publish events to SNS when a new object is created.
